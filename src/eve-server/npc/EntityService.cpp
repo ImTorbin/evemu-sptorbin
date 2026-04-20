@@ -14,6 +14,7 @@
 
 #include "EVEServerConfig.h"
 #include "npc/EntityService.h"
+#include "npc/Drone.h"
 #include "system/SystemManager.h"
 #include "services/ServiceManager.h"
 
