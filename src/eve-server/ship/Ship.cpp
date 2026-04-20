@@ -823,6 +823,8 @@ void ShipItem::MoveModuleSlot(EVEItemFlags slot1, EVEItemFlags slot2) {
 
     // test for active module(s) before moving
     GenericModule* pMod(GetModule(slot1));
+    if (pMod == nullptr)
+        throw CustomError ("The module to move was not found.");
     if (pMod->IsActive())
         throw CustomError ("Your %s is currently active.  You must wait for the cycle to complete before it can be removed.", pMod->GetSelf()->name());
 

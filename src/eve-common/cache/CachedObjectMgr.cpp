@@ -161,7 +161,7 @@ bool CachedObjectMgr::HaveCached(const PyRep *objectID) const
 {
     PyIncRef(objectID);
     const std::string str = OIDToString(objectID);
-
+    MutexLock lock(m_cacheLock);
     return (m_cachedObjects.find(str) != m_cachedObjects.end());
 }
 
@@ -169,6 +169,7 @@ void CachedObjectMgr::InvalidateCache(const PyRep *objectID)
 {
     PyIncRef(objectID);
     const std::string str = OIDToString(objectID);
+    MutexLock lock(m_cacheLock);
     CachedObjMapItr res = m_cachedObjects.find(str);
 
     if (res != m_cachedObjects.end()) {
@@ -240,6 +241,7 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **pbuf)
     const std::string str = OIDToString(objectID);
 
     //find and destroy any older version of this object.
+    MutexLock lock(m_cacheLock);
     CachedObjMapItr res = m_cachedObjects.find(str);
 
     if (res != m_cachedObjects.end()) {
@@ -264,7 +266,7 @@ PyObject *CachedObjectMgr::MakeCacheHint(const std::string &objectID)
 PyObject *CachedObjectMgr::MakeCacheHint(const PyRep *objectID)
 {
     const std::string str = OIDToString(objectID);
-
+    MutexLock lock(m_cacheLock);
     CachedObjMapItr res = m_cachedObjects.find(str);
     if (res == m_cachedObjects.end())
         return nullptr;
@@ -284,36 +286,46 @@ PyObject *CachedObjectMgr::GetCachedObject(const std::string &objectID)
 PyObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID)
 {
     const std::string str = OIDToString(objectID);
+    int64 timestamp = 0;
+    uint32 version = 0;
+    PyRep* objectIDCopy = nullptr;
+    PyBuffer* cacheCopy = nullptr;
+    bool compressed = false;
 
-    CachedObjMapItr res = m_cachedObjects.find(str);
-    if (res == m_cachedObjects.end())
-        return nullptr;
+    {
+        MutexLock lock(m_cacheLock);
+        CachedObjMapItr res = m_cachedObjects.find(str);
+        if (res == m_cachedObjects.end())
+            return nullptr;
+
+        timestamp = res->second->timestamp;
+        version = res->second->version;
+        objectIDCopy = res->second->objectID->Clone();
+        cacheCopy = static_cast<PyBuffer*>(res->second->cache->Clone());
+        if (cacheCopy == nullptr) {
+            PySafeDecRef(objectIDCopy);
+            return nullptr;
+        }
+        compressed = !(cacheCopy->content().size() == 0 || cacheCopy->content()[0] == MarshalHeaderByte);
+    }
 
     PyCachedObject co;
-    co.timestamp = res->second->timestamp;
-    co.version = res->second->version;
+    co.timestamp = timestamp;
+    co.version = version;
     co.nodeID = HackCacheNodeID;    //hack, doesn't matter until we have multi-node networks.
     co.shared = true;
-    co.objectID = res->second->objectID->Clone();
-    co.cache = res->second->cache;
-
-    if (res->second->cache->content().size() == 0 || res->second->cache->content()[0] == MarshalHeaderByte)
-        co.compressed = false;
-    else
-        co.compressed = true;
+    co.objectID = objectIDCopy;
+    co.cache = cacheCopy;
+    co.compressed = compressed;
 
     sLog.Debug("CachedObjMgr","Returning cached object '%s' with checksum 0x%x", str.c_str(), co.version);
-
-    PyObject* result = co.Encode();
-    co.cache = nullptr;    //avoid a copy
-
-    return result;
+    return co.Encode();
 }
 
 bool CachedObjectMgr::IsCacheUpToDate(const PyRep *objectID, uint32 version, int64 timestamp)
 {
     const std::string str = OIDToString(objectID);
-
+    MutexLock lock(m_cacheLock);
     CachedObjMapItr res = m_cachedObjects.find(str);
     if (res == m_cachedObjects.end())
         return false;
@@ -400,6 +412,7 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const std::s
 bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep *objectID) const
 {
     const std::string str = OIDToString(objectID);
+    MutexLock lock(m_cacheLock);
     CachedObjMapConstItr res = m_cachedObjects.find(str);
 
     /* make sure we don't try to save a object we don't have */

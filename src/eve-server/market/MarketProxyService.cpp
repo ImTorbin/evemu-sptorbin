@@ -140,27 +140,13 @@ PyResult MarketProxyService::CorpGetNewTransactions(PyCallArgs& call, PyRep* sel
 }
 
 PyResult MarketProxyService::GetOrders(PyCallArgs &call, PyInt* typeID) {
-    PyRep* result(nullptr);
-    std::string method_name ("GetOrders_");
-    method_name += std::to_string(call.client->GetRegionID());
-    method_name += "_";
-    method_name += std::to_string(typeID->value());
-    ObjectCachedMethodID method_id(GetName().c_str(), method_name.c_str());
-    //check to see if this method is in the cache already.
-    if (!this->m_cache->IsCacheLoaded(method_id))
-    {
-        //this method is not in cache yet, load up the contents and cache it.
-        result = MarketDB::GetOrders(call.client->GetRegionID(), typeID->value());
-        if (result == nullptr) {
-            _log(MARKET__DB_ERROR, "Failed to load cache, generating empty contents.");
-            result = PyStatic.NewNone();
-        }
-        this->m_cache->GiveCache(method_id, &result);
+    // NOTE: cache wrapping here has been unstable and can trigger ref/lifetime assertions.
+    // Returning a fresh rowset is slower but avoids hard server crashes.
+    PyRep* result = MarketDB::GetOrders(call.client->GetRegionID(), typeID->value());
+    if (result == nullptr) {
+        _log(MARKET__DB_ERROR, "GetOrders() returned nullptr.  Returning empty payload.");
+        return PyStatic.NewNone();
     }
-
-    //now we know its in the cache one way or the other, so build a
-    //cached object cached method call result.
-    result = this->m_cache->MakeObjectCachedMethodCallResult(method_id);
 
     /*{'FullPath': u'UI/Messages', 'messageID': 258616, 'label': u'MktMarketOpeningTitle'}(u'Market not open yet', None, None)
      * {'FullPath': u'UI/Messages', 'messageID': 258617, 'label': u'MktMarketOpeningBody'}

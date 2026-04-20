@@ -33,6 +33,7 @@
 
 #include "python/PyRep.h"
 #include "python/PyVisitor.h"
+#include "threading/Mutex.h"
 
 class PyRep;
 class PySubStream;
@@ -120,6 +121,7 @@ protected:
 
 
     CachedObjMap m_cachedObjects;   //we own these pointers
+    mutable Mutex m_cacheLock;
 };
 
 class PyCachedObject
