@@ -43,4 +43,4 @@ EXPOSE 26000
 EXPOSE 26001
 
 # Start the app via the script.
-CMD /src/utils/container-scripts/start.sh
+CMD ["bash", "/src/utils/container-scripts/start.sh"]

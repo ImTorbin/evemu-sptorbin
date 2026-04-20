@@ -3,7 +3,7 @@
 echo "Initializing EVEmu..."
 
 #Initialize the database
-/src/utils/container-scripts/db_init.sh
+bash /src/utils/container-scripts/db_init.sh
 
 #Initialize configuration files
 if [ ! -f "/app/etc/eve-server.xml" ]; then
