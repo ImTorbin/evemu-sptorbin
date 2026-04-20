@@ -231,7 +231,7 @@ PyResult FleetBound::GetInitState(PyCallArgs &call) {
     return rsp.Encode();
 }
 
-PyResult FleetBound::Invite(PyCallArgs &call, PyInt* characterID, std::optional<PyInt*> wingID, std::optional <PyInt*> squadID, PyLong* role) {
+PyResult FleetBound::Invite(PyCallArgs &call, PyInt* characterID, PyRep* wingID, PyRep* squadID, PyRep* role) {
     sLog.Warning("FleetBound", "Handle_Invite() size=%lli", call.tuple->size());
     call.Dump(FLEET__DUMP);
 
@@ -243,12 +243,22 @@ PyResult FleetBound::Invite(PyCallArgs &call, PyInt* characterID, std::optional<
         return PyStatic.NewNone();
     }
 
+    auto ParseOptionalInt = [](PyRep* value, int32 defaultValue) -> int32 {
+        if ((value == nullptr) or value->IsNone())
+            return defaultValue;
+        if (value->IsInt())
+            return value->AsInt()->value();
+        if (value->IsLong())
+            return (int32)value->AsLong()->value();
+        return defaultValue;
+    };
+
     InviteData data = InviteData();
         data.inviteBy = call.client;
         data.invited = pClient;
-        data.wingID = wingID.has_value() ? wingID.value()->value() : 0;  // default sends 0
-        data.squadID = squadID.has_value() ? squadID.value()->value() : 0;  // default sends 0
-        data.role = role->value();
+        data.wingID = ParseOptionalInt(wingID, 0);      // default sends 0 / None
+        data.squadID = ParseOptionalInt(squadID, 0);    // default sends 0 / None
+        data.role = ParseOptionalInt(role, Fleet::Role::Member);
 
     if (data.role == Fleet::Role::FleetLeader) {
         data.wingID = -1;

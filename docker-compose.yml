@@ -3,6 +3,7 @@ services:
   server:
     build: . #Build image from source repository
     container_name: evemu_server
+    command: ["bash", "/src/utils/container-scripts/start.sh"]
     volumes:
       - config:/app/etc
       - server_cache:/app/server_cache

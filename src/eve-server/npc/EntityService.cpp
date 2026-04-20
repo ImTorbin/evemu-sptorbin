@@ -179,7 +179,46 @@ PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyInt* targe
     _log(DRONE__TRACE, "EntityBound::Handle_CmdEngage()");
     call.Dump(DRONE__DUMP);
 
-    call.client->SendNotifyMsg("Drone Control is not implemented yet.");
+    SystemManager* pSysMgr = call.client->SystemMgr();
+    if (pSysMgr == nullptr)
+        return new PyDict();
+
+    SystemEntity* pTargetSE = pSysMgr->GetSE(targetID->value());
+    if (pTargetSE == nullptr)
+        return new PyDict();
+
+    uint32 commandCount = 0;
+    for (PyList::const_iterator itr = droneIDs->begin(); itr != droneIDs->end(); ++itr) {
+        uint32 droneID = 0;
+        if ((*itr)->IsInt()) {
+            droneID = (*itr)->AsInt()->value();
+        } else if ((*itr)->IsLong()) {
+            droneID = (uint32)(*itr)->AsLong()->value();
+        } else {
+            continue;
+        }
+
+        SystemEntity* pDroneSE = pSysMgr->GetSE(droneID);
+        if ((pDroneSE == nullptr) or (!pDroneSE->IsDroneSE()))
+            continue;
+
+        DroneSE* pDrone = pDroneSE->GetDroneSE();
+        if (pDrone == nullptr)
+            continue;
+        if (pDrone->GetOwner() != call.client)
+            continue;
+        if (!pDrone->IsEnabled())
+            continue;
+
+        pDrone->SetTarget(pTargetSE);
+        pDrone->GetAI()->Target(pTargetSE);
+        pDrone->StateChange();
+        ++commandCount;
+    }
+
+    if (!commandCount)
+        call.client->SendNotifyMsg("No drones were available to engage that target.");
+
     return new PyDict();
 }
 
