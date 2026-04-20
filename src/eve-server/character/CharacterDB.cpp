@@ -1691,7 +1691,7 @@ void CharacterDB::AddBounty(uint32 charID, uint32 ownerID, uint32 amount) {
         charID, ownerID, amount );
 }
 
-PyRep* CharacterDB::GetKillOrLoss(uint32 charID) {
+PyRep* CharacterDB::GetKillOrLoss(uint32 charID, uint32 num, uint32 startIndex) {
     /*
      *    def GetKillsRecentKills(self, num, startIndex):
      *        shipKills = sm.RemoteSvc('charMgr').GetRecentShipKillsAndLosses(num, startIndex)
@@ -1724,7 +1724,10 @@ PyRep* CharacterDB::GetKillOrLoss(uint32 charID) {
         "  finalDamageDone,"
         "  moonID"
         " FROM chrKillTable"
-        " WHERE ((victimCharacterID = %u) OR (finalCharacterID = %u))", charID, charID))
+        " WHERE ((victimCharacterID = %u) OR (finalCharacterID = %u))"
+        " ORDER BY killID DESC"
+        " LIMIT %u OFFSET %u",
+        charID, charID, num, startIndex))
         /* should we limit this? */
     {
         codelog(DATABASE__ERROR, "Error on query: %s", res.error.c_str());

@@ -371,23 +371,36 @@ void ShipSE::Killed(Damage &fatal_blow) {
      * u'ShipExplodedBody'}(u'Your ship has been destroyed by {[character]charID.name}.', None, {u'{[character]charID.name}': {'conditionalValues': [], 'variableType': 0, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'charID'}})
      */
     uint32 killerID = 0, locationID = GetLocationID();
+    int32 killerCorpID = 0, killerAllianceID = 0, killerFactionID = 0;
+    uint16 killerShipTypeID = 0;
     Client* pClient(nullptr);
     SystemEntity* killer(fatal_blow.srcSE);
 
-    if (killer->HasPilot()) {
-        pClient = killer->GetPilot();
-        killerID = pClient->GetCharacterID();
-    } else if (killer->IsDroneSE()) {
-        pClient = killer->GetDroneSE()->GetOwner();
-        if (pClient == nullptr) {
-            /** @todo  make error here */
-            sLog.Error("Ship::Killed()", "killer == IsDrone and pPlayer == nullptr");
-            EvE::traceStack();
-        } else {
-            killerID = pClient->GetCharacterID();
-        }
+    if (killer == nullptr) {
+        // Keep killmail generation alive even when damage source bookkeeping is missing.
+        sLog.Error("Ship::Killed()", "fatal_blow source entity is nullptr for %s(%u).", m_self->itemName(), m_self->itemID());
+        killerID = 1; // unknown/system
     } else {
-        killerID = killer->GetID();
+        killerCorpID = killer->GetCorporationID();
+        killerAllianceID = killer->GetAllianceID();
+        killerFactionID = killer->GetWarFactionID();
+        killerShipTypeID = killer->GetTypeID();
+
+        if (killer->HasPilot()) {
+            pClient = killer->GetPilot();
+            killerID = pClient->GetCharacterID();
+        } else if (killer->IsDroneSE()) {
+            pClient = killer->GetDroneSE()->GetOwner();
+            if (pClient == nullptr) {
+                /** @todo  make error here */
+                sLog.Error("Ship::Killed()", "killer == IsDrone and pPlayer == nullptr");
+                EvE::traceStack();
+            } else {
+                killerID = pClient->GetCharacterID();
+            }
+        } else {
+            killerID = killer->GetID();
+        }
     }
 
     // AttrFwLpKill
@@ -425,9 +438,9 @@ void ShipSE::Killed(Damage &fatal_blow) {
                     GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(), wreckPosition.x, wreckPosition.y, wreckPosition.z);
 
         DBSystemDynamicEntity wreckEntity = DBSystemDynamicEntity();
-            wreckEntity.allianceID = killer->GetAllianceID();
+            wreckEntity.allianceID = killerAllianceID;
             wreckEntity.categoryID = EVEDB::invCategories::Celestial;
-            wreckEntity.corporationID = killer->GetCorporationID();
+            wreckEntity.corporationID = killerCorpID;
             wreckEntity.factionID = sDataMgr.GetWreckFaction(wreckTypeID);
             wreckEntity.groupID = EVEDB::invGroups::Wreck;
             wreckEntity.itemID = wreckItemRef->itemID();
@@ -479,11 +492,11 @@ void ShipSE::Killed(Damage &fatal_blow) {
         data.victimShipTypeID = m_self->typeID();
 
         data.finalCharacterID = killerID;
-        data.finalCorporationID = killer->GetCorporationID();
-        data.finalAllianceID = killer->GetAllianceID();
-        data.finalFactionID = (killer->GetWarFactionID() > 500021 ? 500021 : killer->GetWarFactionID());
-        data.finalShipTypeID = killer->GetTypeID();
-        data.finalWeaponTypeID = fatal_blow.weaponRef->typeID();
+        data.finalCorporationID = killerCorpID;
+        data.finalAllianceID = killerAllianceID;
+        data.finalFactionID = (killerFactionID > 500021 ? 500021 : killerFactionID);
+        data.finalShipTypeID = killerShipTypeID;
+        data.finalWeaponTypeID = (fatal_blow.weaponRef.get() != nullptr ? fatal_blow.weaponRef->typeID() : 0);
         data.finalSecurityStatus = 0;   /* fix this */
         data.finalDamageDone = fatal_blow.GetTotal();
 

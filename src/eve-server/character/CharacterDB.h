@@ -223,7 +223,7 @@ public:
     PyRep*      GetTopBounties();
     void        AddBounty(uint32 charID, uint32 ownerID, uint32 amount);
 
-    PyRep*      GetKillOrLoss(uint32 charID);
+    PyRep*      GetKillOrLoss(uint32 charID, uint32 num, uint32 startIndex);
 
     static void SetCorpRole(uint32 charID, int64 role);
     static int64 GetCorpRole(uint32 charID);

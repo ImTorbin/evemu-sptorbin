@@ -166,9 +166,25 @@ PyResult CharMgrService::GetImageServerLink(PyCallArgs& call)
     return new PyString(urlBuilder.str());
 }
 
-PyResult CharMgrService::GetRecentShipKillsAndLosses(PyCallArgs& call, PyInt* num, std::optional<PyInt*> startIndex)
+PyResult CharMgrService::GetRecentShipKillsAndLosses(PyCallArgs& call, PyInt* num, PyRep* startIndex)
 {   /* cached object - can return db object as DBResultToCRowset*/
-    return m_db.GetKillOrLoss(call.client->GetCharacterID());
+    uint32 rowCount = num->value();
+    uint32 rowOffset = 0;
+    if ((startIndex != nullptr) and (!startIndex->IsNone())) {
+        if (startIndex->IsInt()) {
+            rowOffset = startIndex->AsInt()->value();
+        } else if (startIndex->IsLong()) {
+            rowOffset = (uint32)startIndex->AsLong()->value();
+        }
+    }
+
+    // Keep payloads bounded for stable UI responses.
+    if (rowCount < 1)
+        rowCount = 1;
+    else if (rowCount > 200)
+        rowCount = 200;
+
+    return m_db.GetKillOrLoss(call.client->GetCharacterID(), rowCount, rowOffset);
 }
 
 PyResult CharMgrService::GetTopBounties(PyCallArgs& call)
