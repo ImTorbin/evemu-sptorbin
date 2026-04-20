@@ -305,9 +305,9 @@ boolean can use either 0/1 OR true/false.
         <allowRemote>false</allowRemote>
         <!-- One-time bootstrap token.  Present it in a POST to /api/v1/auth/login to
              swap for a short-lived HMAC session token.  Leave blank to disable. -->
-        <adminToken></adminToken>
+        <adminToken>c5147e041fefe6cf2e2112a6b0f45da41c5a208c432729fe</adminToken>
         <!-- HMAC secret used to sign session tokens.  Generate at least 32 random bytes. -->
-        <tokenSecret></tokenSecret>
+        <tokenSecret>24cfab4ddaf87988f0e9b6fc1c113818fc2f2f345c820ab3ecb696c1e4c8312f</tokenSecret>
         <tokenTtlSeconds>28800</tokenTtlSeconds>
         <!-- Role mask required of the authenticating account.  Default = Acct::Role::ADMIN (72057594037927936). -->
         <requiredRole>72057594037927936</requiredRole>
