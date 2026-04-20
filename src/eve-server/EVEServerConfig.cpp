@@ -27,6 +27,7 @@
 
 
 #include "EVEServerConfig.h"
+#include "EVE_Roles.h"
 
 /*************************************************************************/
 /* EVEServerConfig                                                       */
@@ -261,6 +262,16 @@ EVEServerConfig::EVEServerConfig()
     net.port = 26000;
     net.imageServer = "localhost";
     net.imageServerPort = 26001;
+    net.apiServerPort = 26002;
+    net.apiServerBind = "127.0.0.1";
+
+    // devtools (admin API for the remote dev exe - off by default)
+    devtools.enabled = false;
+    devtools.allowRemote = false;
+    devtools.adminToken = "";
+    devtools.tokenSecret = "";
+    devtools.tokenTtlSeconds = 8 * 3600;      // 8h
+    devtools.requiredRole = Acct::Role::ADMIN;
 
     // threads  -not implemented
     threads.ConsoleThreads = 1;//P
@@ -292,6 +303,7 @@ bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
     AddMemberParser( "net",         &EVEServerConfig::ProcessNet );
     AddMemberParser( "testing",     &EVEServerConfig::ProcessTesting );
     AddMemberParser( "threads",     &EVEServerConfig::ProcessThreads );
+    AddMemberParser( "devtools",    &EVEServerConfig::ProcessDevTools );
 
     // parse the element
     const bool result = ParseElementChildren( ele );
@@ -316,6 +328,7 @@ bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
     RemoveParser( "net" );
     RemoveParser( "testing" );
     RemoveParser( "threads" );
+    RemoveParser( "devtools" );
 
     // return status of parsing
     return result;
@@ -659,12 +672,37 @@ bool EVEServerConfig::ProcessNet( const TiXmlElement* ele )
     AddValueParser( "port",             net.port );
     AddValueParser( "imageServerPort",  net.imageServerPort);
     AddValueParser( "imageServer",      net.imageServer);
+    AddValueParser( "apiServerPort",    net.apiServerPort);
+    AddValueParser( "apiServerBind",    net.apiServerBind);
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "port" );
     RemoveParser( "imageServerPort" );
     RemoveParser( "imageServer" );
+    RemoveParser( "apiServerPort" );
+    RemoveParser( "apiServerBind" );
+
+    return result;
+}
+
+bool EVEServerConfig::ProcessDevTools( const TiXmlElement* ele )
+{
+    AddValueParser( "enabled",          devtools.enabled );
+    AddValueParser( "allowRemote",      devtools.allowRemote );
+    AddValueParser( "adminToken",       devtools.adminToken );
+    AddValueParser( "tokenSecret",      devtools.tokenSecret );
+    AddValueParser( "tokenTtlSeconds",  devtools.tokenTtlSeconds );
+    AddValueParser( "requiredRole",     devtools.requiredRole );
+
+    const bool result = ParseElementChildren( ele );
+
+    RemoveParser( "enabled" );
+    RemoveParser( "allowRemote" );
+    RemoveParser( "adminToken" );
+    RemoveParser( "tokenSecret" );
+    RemoveParser( "tokenTtlSeconds" );
+    RemoveParser( "requiredRole" );
 
     return result;
 }

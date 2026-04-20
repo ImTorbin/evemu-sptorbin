@@ -247,7 +247,23 @@ public:
         uint16 imageServerPort;
         /// the imageServer for char images. should be the evemu server external ip/host
         std::string imageServer;
+        /// Port at which the devtools admin API listens (when <devtools><enabled>).
+        uint16 apiServerPort;
+        /// Bind address for the devtools admin API.  Default 127.0.0.1 (safe default).
+        std::string apiServerBind;
     } net;
+
+    // From <devtools>
+    //   Remote EVEmu DevTools HTTP admin API (used by the tools/eve-devtools exe).
+    //   Off by default.  Ship TLS via reverse-proxy (nginx/caddy), not in-process.
+    struct {
+        bool enabled;                 // master switch
+        bool allowRemote;             // if false, force bind 127.0.0.1 regardless of net.apiServerBind
+        std::string adminToken;       // bootstrap bearer token for first-run/automation; can be empty
+        std::string tokenSecret;      // HMAC secret used to sign issued session tokens
+        uint32 tokenTtlSeconds;       // lifetime of issued session tokens
+        int64 requiredRole;           // role mask that accounts must carry to access the API (default Acct::Role::ADMIN)
+    } devtools;
 
     // From <thread>
     struct {
@@ -362,6 +378,7 @@ protected:
     bool ProcessBPTimes( const TiXmlElement* ele );
     bool ProcessTesting( const TiXmlElement* ele );
     bool ProcessDebug( const TiXmlElement* ele );
+    bool ProcessDevTools( const TiXmlElement* ele );
 };
 
 /// A macro for easier access to the singleton.

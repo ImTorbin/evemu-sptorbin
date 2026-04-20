@@ -1,0 +1,16 @@
+# Build outputs
+dist/
+dist-installers/
+node_modules/
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/Cargo.lock.bak
+src-tauri/gen/schemas/
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.local

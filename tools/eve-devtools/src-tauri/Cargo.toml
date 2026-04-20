@@ -1,0 +1,27 @@
+[package]
+name = "eve-devtools"
+version = "0.1.0"
+edition = "2021"
+authors = ["The EVEmu Team"]
+description = "Standalone content-authoring desktop app for EVEmu servers."
+license = "LGPL-2.1-or-later"
+repository = "https://github.com/evemuproject/evemu_server"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-store = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+keyring = "2"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "rustls-tls-native-roots"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
+
+[[bin]]
+name = "eve-devtools"
+path = "src/main.rs"

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "productName": "EVEmu DevTools",
+  "version": "0.1.0",
+  "identifier": "dev.evemu.devtools",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "title": "EVEmu DevTools",
+        "width": 1280,
+        "height": 840,
+        "minWidth": 960,
+        "minHeight": 640,
+        "resizable": true
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis"],
+    "icon": ["icons/icon.png"],
+    "category": "DeveloperTool",
+    "shortDescription": "Remote content-authoring tool for EVEmu servers.",
+    "longDescription": "Connects to an EVEmu server's DevTools admin API to edit dungeons, missions, NPC spawns and manage live ops without requiring a Crucible-era game client installed."
+  }
+}

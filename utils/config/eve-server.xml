@@ -147,7 +147,7 @@ boolean can use either 0/1 OR true/false.
         <startAurBalance>600.0</startAurBalance>
         <startStation>0</startStation><!-- stationID of character starting station.  '0' to use default based on race -->
         <startSecRating>1.0</startSecRating>
-        <startCorporation>0</startCorporation><!-- corporationID for new characters '0' to use default based on school -->
+        <startCorporation>216121397</startCorporation><!-- corporationID for new characters '0' to use default based on school -->
         <terminationDelay>1800</terminationDelay> <!-- seconds  30m default -->
         <statMultiplier>3</statMultiplier><!-- stats are multiplied by this (after remap) -->
         <allow3edChar>false</allow3edChar><!-- (dis)allow creating a third character -->
@@ -282,6 +282,35 @@ boolean can use either 0/1 OR true/false.
         <!-- Set to IP address which CLIENT can use to access port 26001 on server. -->
         <imageServer>127.0.0.1</imageServer>
         <imageServerPort>26001</imageServerPort>
+        <!-- DevTools admin API listen settings (only used when <devtools><enabled>true).
+             Default bind is 127.0.0.1 - the admin API does NOT terminate TLS itself.
+             Put it behind a reverse proxy (nginx/caddy) to expose it remotely. -->
+        <apiServerPort>26002</apiServerPort>
+        <apiServerBind>127.0.0.1</apiServerBind>
     </net>
+
+    <devtools>
+        <!--
+        Remote admin HTTP/JSON API used by the standalone tools/eve-devtools Windows app.
+        This is OFF by default because it allows mutating server state (dungeons,
+        missions, spawns, running slash commands) from outside the game.
+
+        Bearer tokens are required.  Accounts also need the role mask in <requiredRole>
+        (defaults to Acct::Role::ADMIN).  Sessions expire after <tokenTtlSeconds>.
+
+        TLS is expected to be handled by a reverse proxy - bind this to 127.0.0.1
+        and have nginx/caddy proxy https://your-host/api/v1/ to it.
+        -->
+        <enabled>true</enabled>
+        <allowRemote>false</allowRemote>
+        <!-- One-time bootstrap token.  Present it in a POST to /api/v1/auth/login to
+             swap for a short-lived HMAC session token.  Leave blank to disable. -->
+        <adminToken></adminToken>
+        <!-- HMAC secret used to sign session tokens.  Generate at least 32 random bytes. -->
+        <tokenSecret></tokenSecret>
+        <tokenTtlSeconds>28800</tokenTtlSeconds>
+        <!-- Role mask required of the authenticating account.  Default = Acct::Role::ADMIN (72057594037927936). -->
+        <requiredRole>72057594037927936</requiredRole>
+    </devtools>
 
 </eve-server>
