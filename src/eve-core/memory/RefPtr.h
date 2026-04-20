@@ -184,7 +184,7 @@ public:
      *
      * @param[in] oth Object to move.
      */
-    RefPtr& operator=(const RefPtr&& oth)
+    RefPtr& operator=(RefPtr&& oth)
     {
         X* newPtr = oth.get();
         if (mPtr == newPtr)
@@ -194,7 +194,7 @@ public:
             newPtr->IncRef();
         if (mPtr != nullptr)
             mPtr->DecRef();
-        mPtr = std::move(newPtr);
+        mPtr = newPtr;
         return *this;
     }
     /**

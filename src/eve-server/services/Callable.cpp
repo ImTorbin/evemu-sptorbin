@@ -54,18 +54,26 @@ PyResult::~PyResult() { PySafeDecRef(ssResult); PySafeDecRef(ssNamedResult); }
 
 PyResult& PyResult::operator=(const PyResult& oth)
 {
-    PySafeDecRef(ssResult);
-    if (oth.ssResult != nullptr) {
-        ssResult = oth.ssResult;
-    }
-    else {
-        ssResult = PyStatic.NewNone();
-    }
-    PySafeIncRef(ssResult);
+    if (this == &oth)
+        return *this;
 
+    // Retain incoming references before releasing current ones.
+    // This avoids use-after-free when both objects alias the same PyRep.
+    PyRep* newResult = oth.ssResult;
+    if (newResult != nullptr) {
+        PyIncRef(newResult);
+    } else {
+        newResult = PyStatic.NewNone();
+    }
+
+    PyDict* newNamedResult = oth.ssNamedResult;
+    PySafeIncRef(newNamedResult);
+
+    PySafeDecRef(ssResult);
     PySafeDecRef(ssNamedResult);
-    ssNamedResult = oth.ssNamedResult;
-    PySafeIncRef(ssNamedResult);
+
+    ssResult = newResult;
+    ssNamedResult = newNamedResult;
 
     return *this;
 }
