@@ -1155,14 +1155,25 @@ void FleetService::GetRandUnitIDs(uint32 fleetID, int32& wingID, int32& squadID)
     for (auto itr = range.first; itr != range.second; ++itr)
         wings.push_back(itr->second);
 
-    wingID = wings.at(MakeRandomInt(0, wings.size()));
+    if (wings.empty()) {
+        wingID = 0;
+        squadID = 0;
+        return;
+    }
+
+    wingID = wings.at(MakeRandomInt(0, wings.size() - 1));
 
     range = m_wingSquads.equal_range(wingID);
     for (auto itr = range.first; itr != range.second; ++itr)
         squads.push_back(itr->second);
 
     // make sure there is room in this squad for another member
-    squadID = squads.at(MakeRandomInt(0, squads.size()));
+    if (squads.empty()) {
+        squadID = 0;
+        return;
+    }
+
+    squadID = squads.at(MakeRandomInt(0, squads.size() - 1));
 }
 
 void FleetService::LeaveFleet(Client* pClient)

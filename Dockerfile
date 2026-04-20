@@ -36,7 +36,7 @@ ADD /sql/ /src/sql
 # copy our compiled code to this image
 COPY --from=app-build /app/ /app
 
-RUN cd /src/sql && ./get_evedbtool.sh
+RUN cd /src/sql && bash ./get_evedbtool.sh
 
 # Expose the port the server is on.
 EXPOSE 26000

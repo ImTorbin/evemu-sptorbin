@@ -262,7 +262,7 @@ const GPoint MapData::GetRandPointOnPlanet(uint32 systemID) {
     if (planetIDs.empty())
         return NULL_ORIGIN;
 
-    uint16 i = MakeRandomInt(1, total);
+    uint16 i = MakeRandomInt(0, planetIDs.size() - 1);
     return (planetIDs[i].position + planetIDs[i].radius + 50000);
 }
 
@@ -275,7 +275,7 @@ const GPoint MapData::GetRandPointOnMoon(uint32 systemID) {
     if (moonIDs.empty())
         return NULL_ORIGIN;
 
-    uint16 i = MakeRandomInt(1, total);
+    uint16 i = MakeRandomInt(0, moonIDs.size() - 1);
     return (moonIDs[i].position + moonIDs[i].radius + 10000);
 }
 
@@ -288,7 +288,7 @@ uint32 MapData::GetRandPlanet(uint32 systemID) {
     if (planetIDs.empty())
         return 0;
 
-    uint16 i = MakeRandomInt(1, total);
+    uint16 i = MakeRandomInt(0, planetIDs.size() - 1);
     return planetIDs[i].itemID;
 }
 
@@ -320,7 +320,7 @@ uint32 MapData::GetRandMoon(uint32 systemID) {
     if (moonIDs.empty())
         return 0;
 
-    uint16 i = MakeRandomInt(1, total);
+    uint16 i = MakeRandomInt(0, moonIDs.size() - 1);
     return moonIDs[i].itemID;
 }
 
@@ -337,7 +337,13 @@ const GPoint MapData::GetAnomalyPoint(SystemManager* pSys)
     planetIDs.clear();
     MapDB::GetPlanets(pSys->GetID(), planetIDs, total);
 
-    SystemEntity* pSE(pSys->GetSE(planetIDs[MakeRandomInt(0, total)].itemID));
+    if (planetIDs.empty())
+        return NULL_ORIGIN;
+
+    uint16 i = MakeRandomInt(0, planetIDs.size() - 1);
+    SystemEntity* pSE(pSys->GetSE(planetIDs[i].itemID));
+    if (pSE == nullptr)
+        return NULL_ORIGIN;
 
     GPoint pos(pSE->GetPosition());
     pos.MakeRandomPointOnSphereLayer(ONE_AU_IN_METERS / 3, ONE_AU_IN_METERS * 4);
@@ -350,7 +356,11 @@ const GPoint MapData::GetAnomalyPoint(uint32 systemID)
     std::vector<DBGPointEntity> planetIDs;
     planetIDs.clear();
     MapDB::GetPlanets(systemID, planetIDs, total);
-    GPoint pos(planetIDs[MakeRandomInt(0, total)].position);
+    if (planetIDs.empty())
+        return NULL_ORIGIN;
+
+    uint16 i = MakeRandomInt(0, planetIDs.size() - 1);
+    GPoint pos(planetIDs[i].position);
     pos.MakeRandomPointOnSphereLayer(ONE_AU_IN_METERS / 3, ONE_AU_IN_METERS * 4);
     return pos;
 }
