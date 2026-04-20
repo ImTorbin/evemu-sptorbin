@@ -525,6 +525,21 @@ bool ModuleManager::AddModule(ModuleItemRef mRef, EVEItemFlags flag)
         return false;
     }
 
+    // Defense-in-depth: InventoryBound typically enforces these limits first,
+    // but module add paths that bypass it must not be able to underflow hardpoint counters.
+    if (IsHiSlot(flag)) {
+        if (mRef->type().HasEffect(EVEEffectID::turretFitted) and (pShipItem->GetAttribute(AttrTurretSlotsLeft) < 1)) {
+            _log(MODULE__WARNING, "MM::AddModule() - refusing turret fit for %s(%u): no turret hardpoints left.",
+                pShipItem->name(), pShipItem->itemID());
+            return false;
+        }
+        if (mRef->type().HasEffect(EVEEffectID::launcherFitted) and (pShipItem->GetAttribute(AttrLauncherSlotsLeft) < 1)) {
+            _log(MODULE__WARNING, "MM::AddModule() - refusing launcher fit for %s(%u): no launcher hardpoints left.",
+                pShipItem->name(), pShipItem->itemID());
+            return false;
+        }
+    }
+
     // create new module object
     GenericModule* pMod = ModuleFactory(mRef, ShipItemRef(pShipItem));
     if (pMod == nullptr)
@@ -1528,12 +1543,26 @@ void ModuleManager::addModuleRef(EVEItemFlags flag, GenericModule* pMod)
         if (pMod->isTurretFitted()) {
             // apply config modifier, if applicable
             pMod->GetSelf()->MultiplyAttribute(AttrSpeed, sConfig.rates.turretRoF);
-            uint8 count = pShipItem->GetAttribute(AttrTurretSlotsLeft).get_uint32() -1;
+            uint32 turretLeft = pShipItem->GetAttribute(AttrTurretSlotsLeft).get_uint32();
+            if (turretLeft == 0) {
+                _log(MODULE__ERROR, "MM::addModuleRef() - turret slot underflow prevented on %s(%u).",
+                    pShipItem->name(), pShipItem->itemID());
+            } else {
+                --turretLeft;
+            }
+            uint8 count = static_cast<uint8>(turretLeft);
             pShipItem->SetAttribute(AttrTurretSlotsLeft, count, update);
         } else if (pMod->isLauncherFitted()) {
             // apply config modifier, if applicable
             pMod->GetSelf()->MultiplyAttribute(AttrSpeed, sConfig.rates.missileRoF);
-            uint8 count = pShipItem->GetAttribute(AttrLauncherSlotsLeft).get_uint32() -1;
+            uint32 launcherLeft = pShipItem->GetAttribute(AttrLauncherSlotsLeft).get_uint32();
+            if (launcherLeft == 0) {
+                _log(MODULE__ERROR, "MM::addModuleRef() - launcher slot underflow prevented on %s(%u).",
+                    pShipItem->name(), pShipItem->itemID());
+            } else {
+                --launcherLeft;
+            }
+            uint8 count = static_cast<uint8>(launcherLeft);
             pShipItem->SetAttribute(AttrLauncherSlotsLeft, count, update);
         }
         --m_HighSlots;
