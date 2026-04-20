@@ -25,7 +25,7 @@ services:
       - SYS_PTRACE
 
   db:
-    image: "bitnami/mariadb:10.4"
+    image: "bitnami/mariadb:10.11"
     container_name: evemu_db
     volumes:
       - db:/bitnami/mariadb
