@@ -80,7 +80,7 @@ BoundDispatcher *EntityService::BindObject(Client* client, PyRep* bindParameters
 
     EntityBound* bound = new EntityBound(this->GetServiceManager(), *this, client->SystemMgr(), systemID);
 
-    this->m_instances.insert_or_assign(systemID, bound);
+    this->m_instances.emplace(systemID, bound);
 
     return bound;
 }
