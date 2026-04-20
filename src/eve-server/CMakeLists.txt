@@ -638,6 +638,28 @@ SET( services_SOURCE
      "${TARGET_SOURCE_DIR}/services/BoundService.cpp"
      "${TARGET_SOURCE_DIR}/services/ServiceManager.cpp")
 
+SET( devtools_INCLUDE
+     "${TARGET_INCLUDE_DIR}/devtools/DevtoolsAudit.h"
+     "${TARGET_INCLUDE_DIR}/devtools/DevtoolsAuth.h"
+     "${TARGET_INCLUDE_DIR}/devtools/DevtoolsHash.h"
+     "${TARGET_INCLUDE_DIR}/devtools/DevtoolsJson.h"
+     "${TARGET_INCLUDE_DIR}/devtools/DevtoolsRouter.h"
+     "${TARGET_INCLUDE_DIR}/devtools/DevtoolsServer.h"
+     "${TARGET_INCLUDE_DIR}/devtools/handlers/AllHandlers.h")
+SET( devtools_SOURCE
+     "${TARGET_SOURCE_DIR}/devtools/DevtoolsAudit.cpp"
+     "${TARGET_SOURCE_DIR}/devtools/DevtoolsAuth.cpp"
+     "${TARGET_SOURCE_DIR}/devtools/DevtoolsHash.cpp"
+     "${TARGET_SOURCE_DIR}/devtools/DevtoolsJson.cpp"
+     "${TARGET_SOURCE_DIR}/devtools/DevtoolsRouter.cpp"
+     "${TARGET_SOURCE_DIR}/devtools/DevtoolsServer.cpp"
+     "${TARGET_SOURCE_DIR}/devtools/handlers/ControlHandlers.cpp"
+     "${TARGET_SOURCE_DIR}/devtools/handlers/CoreHandlers.cpp"
+     "${TARGET_SOURCE_DIR}/devtools/handlers/DungeonHandlers.cpp"
+     "${TARGET_SOURCE_DIR}/devtools/handlers/MissionHandlers.cpp"
+     "${TARGET_SOURCE_DIR}/devtools/handlers/NpcHandlers.cpp"
+     "${TARGET_SOURCE_DIR}/devtools/handlers/OpenApiHandler.cpp")
+
 ########################
 # Setup the executable #
 ########################
@@ -679,6 +701,7 @@ SOURCE_GROUP( "src\\system"        FILES ${system_INCLUDE} )
 SOURCE_GROUP( "src\\system\\sov"   FILES ${system_sov_INCLUDE} )
 SOURCE_GROUP( "src\\system\\cosmicMgrs"  FILES ${system_managers_INCLUDE} )
 SOURCE_GROUP( "src\\system\\test"  FILES ${test_INCLUDE} )
+SOURCE_GROUP( "src\\devtools"      FILES ${devtools_INCLUDE} )
 
 SOURCE_GROUP( "src"                FILES ${SOURCE} )
 SOURCE_GROUP( "src\\account"       FILES ${account_SOURCE} )
@@ -718,6 +741,7 @@ SOURCE_GROUP( "src\\system"        FILES ${system_SOURCE} )
 SOURCE_GROUP( "src\\system\\sov"   FILES ${system_sov_SOURCE} )
 SOURCE_GROUP( "src\\system\\cosmicMgrs"  FILES ${system_managers_SOURCE} )
 SOURCE_GROUP( "src\\system\\test"  FILES ${test_SOURCE} )
+SOURCE_GROUP( "src\\devtools"      FILES ${devtools_SOURCE} )
 
 ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${INCLUDE}                ${SOURCE}
@@ -758,6 +782,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${system_sov_INCLUDE}     ${system_sov_SOURCE}
                 ${system_managers_INCLUDE} ${system_managers_SOURCE}
                 ${test_INCLUDE}           ${test_SOURCE}
+                ${devtools_INCLUDE}       ${devtools_SOURCE}
                 )
 
 target_precompile_headers( "${TARGET_NAME}" PUBLIC

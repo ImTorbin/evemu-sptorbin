@@ -181,6 +181,8 @@
 #include "system/cosmicMgrs/WormholeMgr.h"
 // database cleaner service
 #include "DBCleaner.h"
+// devtools admin API (optional, off by default)
+#include "devtools/DevtoolsServer.h"
 
 static const char* const SRV_CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
 
@@ -877,6 +879,19 @@ int main( int argc, char* argv[] )
     }
     std::printf("\n");     // spacer
 
+    /* Optional DevTools admin HTTP/JSON API (off by default).  Starts on its own
+       thread so it does not affect the main tick.  Configured in eve-server.xml
+       under <devtools>.  Expected to be fronted by nginx/caddy for TLS. */
+    if (sConfig.devtools.enabled) {
+        sLog.Green("       ServerInit", "Starting DevTools Admin API");
+        if (!EvE::Devtools::DevtoolsServer::get().Start()) {
+            sLog.Error("       ServerInit", "DevTools Admin API failed to start; continuing without it.");
+        }
+    } else {
+        sLog.Warning("       ServerInit", "DevTools Admin API disabled in config.");
+    }
+    std::printf("\n");     // spacer
+
     sLog.Blue("       ServerInit", "Server Initialized in %.3f Seconds.", (GetTimeMSeconds() - profileStartTime) / 1000);
     sLog.Error("       ServerInit", "Main Loop Starting.");
 
@@ -935,6 +950,10 @@ int main( int argc, char* argv[] )
     /* stop Image Server */
     sImageServer.Stop();
     sLog.Warning("   ServerShutdown", "Image Server stopped." );
+    /* stop DevTools admin API */
+    if (sConfig.devtools.enabled) {
+        EvE::Devtools::DevtoolsServer::get().Stop();
+    }
     /* Close the MarketMgr */
     sMktMgr.Close();
     /* Close the bulk data manager */
