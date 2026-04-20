@@ -186,11 +186,15 @@ public:
      */
     RefPtr& operator=(const RefPtr&& oth)
     {
-        if (*this)
-            (*this)->DecRef();
-        mPtr = std::move(oth.get());
-        if (*this)
-            (*this)->IncRef();
+        X* newPtr = oth.get();
+        if (mPtr == newPtr)
+            return *this;
+
+        if (newPtr != nullptr)
+            newPtr->IncRef();
+        if (mPtr != nullptr)
+            mPtr->DecRef();
+        mPtr = std::move(newPtr);
         return *this;
     }
     /**
@@ -200,11 +204,15 @@ public:
      */
     RefPtr& operator=(const RefPtr& oth)
     {
-        if (*this)
-            (*this)->DecRef();
-        mPtr = oth.get();
-        if (*this)
-            (*this)->IncRef();
+        X* newPtr = oth.get();
+        if (mPtr == newPtr)
+            return *this;
+
+        if (newPtr != nullptr)
+            newPtr->IncRef();
+        if (mPtr != nullptr)
+            mPtr->DecRef();
+        mPtr = newPtr;
         return *this;
     }
     /**
@@ -215,11 +223,15 @@ public:
     template<typename Y>
     RefPtr& operator=(const RefPtr<Y>& oth)
     {
-        if (*this)
-            (*this)->DecRef();
-        mPtr = oth.get();
-        if (*this)
-            (*this)->IncRef();
+        X* newPtr = oth.get();
+        if (mPtr == newPtr)
+            return *this;
+
+        if (newPtr != nullptr)
+            newPtr->IncRef();
+        if (mPtr != nullptr)
+            mPtr->DecRef();
+        mPtr = newPtr;
         return *this;
     }
 
